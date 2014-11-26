@@ -1,29 +1,25 @@
 import java.util.*;
 
-/**
- * Created with IntelliJ IDEA.
- * User: roy
- * Date: 11/25/14
- * Time: 8:09 PM
- * To change this template use File | Settings | File Templates.
- */
 public class DeepIterator<T> implements Iterator<T> {
-    Stack<Iterable<T>> stack = new Stack<Iterable<T>>();
-    T element = null;
+    private Stack<Iterator<T>> stack = new Stack<Iterator<T>>();
+    private T element = null;
+
     public DeepIterator(Iterable<T> iterable) {
-        stack.push(iterable);
+        stack.push(iterable.iterator());
     }
 
     @Override
     public boolean hasNext() {
+        if (element != null) return true;
+
         while (!stack.isEmpty()) {
-            Iterator<T> itr = stack.peek().iterator();
+            Iterator<T> itr = stack.peek();
             if (itr.hasNext()) {
                 T object = itr.next();
                 if (object instanceof Iterable) {
-                    stack.push((Iterable)object);
+                    stack.push(((Iterable) object).iterator());
                 } else {
-                    element = object;
+                    element = (T)object;
                     return true;
                 }
             } else {
@@ -36,9 +32,16 @@ public class DeepIterator<T> implements Iterator<T> {
     @Override
     public T next() {
         if (hasNext()) {
-            return stack.peek().iterator().next();
+            T temp = element;
+            element = null;
+            return temp;
         }
         throw new NoSuchElementException();
+    }
+
+    @Override
+    public void remove() {
+
     }
 
     public static void main(String[] args) {
@@ -53,7 +56,10 @@ public class DeepIterator<T> implements Iterator<T> {
         l3.add(5);
         l3.add(6);
         l2.add(l3);
-        DeepIterator deepIterator = new DeepIterator(l1);
+        l2.add(7);
+        l2.add(8);
+        l1.add(9);
+        DeepIterator<Integer> deepIterator = new DeepIterator<Integer>(l1);
 
         while(deepIterator.hasNext()) {
             System.out.println(deepIterator.next());
